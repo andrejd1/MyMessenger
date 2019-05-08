@@ -1,10 +1,12 @@
-package com.andrejd1.mymessenger
+package com.andrejd1.mymessenger.messages
 
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import com.andrejd1.mymessenger.R
+import com.andrejd1.mymessenger.registerLogin.RegisterActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class LatestMessagesActivity : AppCompatActivity() {
