@@ -4,22 +4,24 @@
                                              xmlns:tools="http://schemas.android.com/tools"
                                              android:layout_width="match_parent"
                                              android:layout_height="wrap_content"
-                                             android:layout_marginBottom="16dp">>
+                                             android:layout_marginBottom="16dp">
 
     <TextView
             android:text="This is my message that will wrap into multiple lines and keep on going"
             android:maxWidth="240dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/textView" app:layout_constraintStart_toEndOf="@+id/imageView"
-            android:layout_marginLeft="8dp" android:layout_marginStart="8dp" android:layout_marginTop="8dp"
+            android:id="@+id/textView_from_row"
+            android:layout_marginTop="4dp"
             app:layout_constraintTop_toTopOf="parent" android:textColor="#FFFFFF"
             android:padding="16dp"
-            android:background="@drawable/rounded_edittext_register_login"/>
+            android:background="@drawable/rounded_edittext_register_login"
+            app:layout_constraintStart_toEndOf="@+id/imageView_from_row" android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"/>
     <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp" app:srcCompat="@android:drawable/btn_star_big_on"
-            android:id="@+id/imageView" android:layout_marginTop="8dp"
+            android:id="@+id/imageView_from_row" android:layout_marginTop="8dp"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
             android:layout_marginLeft="8dp" android:layout_marginStart="8dp"/>
 </android.support.constraint.ConstraintLayout>
