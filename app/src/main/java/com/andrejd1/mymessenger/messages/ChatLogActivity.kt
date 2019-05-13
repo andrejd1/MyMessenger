@@ -3,7 +3,6 @@ package com.andrejd1.mymessenger.messages
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import com.andrejd1.mymessenger.R
 import com.andrejd1.mymessenger.models.ChatMessage
 import com.andrejd1.mymessenger.models.User
@@ -13,11 +12,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.Item
 import com.xwray.groupie.ViewHolder
 import kotlinx.android.synthetic.main.activity_chat_log.*
-import kotlinx.android.synthetic.main.chat_from_row.view.*
-import kotlinx.android.synthetic.main.chat_to_row.view.*
 
 class ChatLogActivity : AppCompatActivity() {
 
@@ -27,16 +23,17 @@ class ChatLogActivity : AppCompatActivity() {
 
     val adapter = GroupAdapter<ViewHolder>()
 
+    var toUser: User? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_log)
 
         recycleView_chat_log.adapter = adapter
 
-        val user = intent.getParcelableExtra<User>(NewMessageActivity.USER_KEY)
-        supportActionBar?.title = user.username
+        toUser = intent.getParcelableExtra<User>(NewMessageActivity.USER_KEY)
+        supportActionBar?.title = toUser?.username
 
-//        setupDummyData()
         listenForMessages()
 
         button_chat_log.setOnClickListener {
@@ -46,18 +43,26 @@ class ChatLogActivity : AppCompatActivity() {
     }
 
     private fun listenForMessages() {
-        val ref = FirebaseDatabase.getInstance().getReference("/messages")
+        val fromId = FirebaseAuth.getInstance().uid
+        val toId = toUser?.uid
+
+        val ref = FirebaseDatabase.getInstance().getReference("/user-messages/$fromId/$toId")
 
         ref.addChildEventListener(object: ChildEventListener {
+
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 val chatMessage = p0.getValue(ChatMessage::class.java)
 
                 if (chatMessage != null) {
                     Log.d(TAG, chatMessage.text)
-                    if(chatMessage.fromId == FirebaseAuth.getInstance().uid)
-                        adapter.add(ChatFromItem(chatMessage.text))
-                    else
-                        adapter.add(ChatToItem(chatMessage.text))
+
+                    if (chatMessage.fromId == FirebaseAuth.getInstance().uid) {
+                        val currentUser = LatestMessagesActivity.currentUser
+                        adapter.add(ChatFromItem(chatMessage.text, currentUser!!))
+                    }
+                    else {
+                        adapter.add(ChatToItem(chatMessage.text, toUser!!))
+                    }
                 }
             }
 
@@ -82,50 +87,27 @@ class ChatLogActivity : AppCompatActivity() {
         val fromId = FirebaseAuth.getInstance().uid
         val user = intent.getParcelableExtra<User>(NewMessageActivity.USER_KEY)
         val toId = user.uid
-        val reference = FirebaseDatabase.getInstance().getReference("/messages").push()
 
         if (fromId == null)
             return
 
+        val reference = FirebaseDatabase.getInstance().getReference("/user-messages/$fromId/$toId").push()
+        val toReference = FirebaseDatabase.getInstance().getReference("/user-messages/$toId/$fromId").push()
+
         val chatMessage = ChatMessage(reference.key!!, text, fromId, toId, System.currentTimeMillis() / 1000)
+
         reference.setValue(chatMessage).addOnSuccessListener {
             Log.d(TAG, "Saved our chat message: ${reference.key}")
+            editText_chat_log.text.clear()
+            recycleView_chat_log.scrollToPosition(adapter.itemCount-1)
         }
-    }
+        toReference.setValue(chatMessage)
 
-    private fun setupDummyData() {
-        val adapter = GroupAdapter<ViewHolder>()
-        adapter.add(ChatFromItem("FROM MESSAGEEEE"))
-        adapter.add(ChatToItem("TO MESSAGEEEE\nTO MESSAGE"))
-        adapter.add(ChatFromItem("FROM MESSAGEEEE"))
-        adapter.add(ChatToItem("TO MESSAGEEEE\nTO MESSAGE"))
-        adapter.add(ChatFromItem("FROM MESSAGEEEE"))
-        adapter.add(ChatToItem("TO MESSAGEEEE\nTO MESSAGE"))
-        adapter.add(ChatFromItem("FROM MESSAGEEEE"))
-        adapter.add(ChatToItem("TO MESSAGEEEE\nTO MESSAGE"))
-        adapter.add(ChatFromItem("FROM MESSAGEEEE"))
-        adapter.add(ChatToItem("TO MESSAGEEEE\nTO MESSAGE"))
+        val latestMessageRef = FirebaseDatabase.getInstance().getReference("/latest-messages/$fromId/$toId")
+        latestMessageRef.setValue(chatMessage)
 
-        recycleView_chat_log.adapter = adapter
+        val latestMessageToRef = FirebaseDatabase.getInstance().getReference("/latest-messages/$toId/$fromId")
+        latestMessageToRef.setValue(chatMessage)
     }
 }
 
-class ChatFromItem(val text: String): Item<ViewHolder>() {
-    override fun bind(viewHolder: ViewHolder, position: Int) {
-        viewHolder.itemView.textView_from_row.text = text
-    }
-
-    override fun getLayout(): Int {
-        return R.layout.chat_from_row
-    }
-}
-
-class ChatToItem(val text: String): Item<ViewHolder>() {
-    override fun bind(viewHolder: ViewHolder, position: Int) {
-        viewHolder.itemView.textView_to_row.text = text
-    }
-
-    override fun getLayout(): Int {
-        return R.layout.chat_to_row
-    }
-}

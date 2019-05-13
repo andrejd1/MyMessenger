@@ -15,10 +15,12 @@
             android:layout_marginTop="4dp"
             app:layout_constraintTop_toTopOf="parent" android:textColor="#FFFFFF"
             android:padding="16dp"
-            android:background="@drawable/rounded_edittext_register_login"
+            android:background="@drawable/rounded_edittext_message_from"
             app:layout_constraintStart_toEndOf="@+id/imageView_from_row" android:layout_marginStart="8dp"
             android:layout_marginLeft="8dp"/>
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
+            app:civ_border_width="2dp"
+            app:civ_border_color="@android:color/darker_gray"
             android:layout_width="50dp"
             android:layout_height="50dp" app:srcCompat="@android:drawable/btn_star_big_on"
             android:id="@+id/imageView_from_row" android:layout_marginTop="8dp"
